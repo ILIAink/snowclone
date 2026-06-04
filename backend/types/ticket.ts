@@ -1,26 +1,32 @@
-enum Severity {
+export enum TicketState {
+  new = "New",
+  open = "Open",
+  awaitingInfo = "Awaiting Info",
+  resolved = "Resolved",
+}
+
+type Engineer = {
+  name: string;
+  email: string;
+};
+
+export enum TicketSeverity {
   low,
   moderate,
   high,
   critical,
 }
 
-enum TicketState {
-  open = "Open",
-  awaitingInfo = "Awaiting Info",
-  resolved = "Resolved",
-}
-
-type ticket = {
+type Ticket = {
   ticketId: string;
   shortDesc: string;
   description: string;
   state: TicketState;
-  severity: Severity;
+  severity: TicketSeverity;
   createdAt: Date;
   updatedAt: Date;
-  resolvedAt: Date;
-  assignedTo: null;
+  resolvedAt: Date | null;
+  assignedTo: Engineer | null;
 };
 
-export { ticket };
+export type { Ticket };
