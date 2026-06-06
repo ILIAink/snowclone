@@ -3,6 +3,22 @@ import * as ticketService from "../services/ticket";
 import { TicketSeverity, TicketState, type Ticket } from "../types/ticket";
 import { BadRequestError } from "../errors";
 
+export const getTicketById = async (req: Request, res: Response) => {
+  if (!req.body) {
+    throw new BadRequestError("Request body is missing");
+  }
+
+  const { ticketId } = req.body;
+
+  if (!ticketId) {
+    throw new BadRequestError("A ticketId is required");
+  }
+
+  const ticket = await ticketService.getTicketById(ticketId);
+
+  return res.json(ticket);
+};
+
 export const updateTicket = async (req: Request, res: Response) => {
   if (!req.body) {
     throw new BadRequestError("Request body is missing");

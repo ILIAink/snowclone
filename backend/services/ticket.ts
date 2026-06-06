@@ -1,7 +1,21 @@
 import type { Ticket } from "../types/ticket";
 import { db } from "../db/db";
 
-export const getTicketById = async () => {};
+export const getTicketById = async (ticketId: string) => {
+  try {
+    const result = await db.query(`SELECT * FROM tickets WHERE ticketId = $1`, [
+      ticketId,
+    ]);
+
+    if (!result.rows[0]) {
+      throw Error("Ticket does not exist");
+    }
+
+    return result.rows[0];
+  } catch (error) {
+    throw error;
+  }
+};
 
 export const createTicketId = async (): Promise<string> => {
   try {
