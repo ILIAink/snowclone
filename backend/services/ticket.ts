@@ -1,6 +1,8 @@
 import type { Ticket } from "../types/ticket";
 import { db } from "../db/db";
 
+export const getTicketById = async () => {};
+
 export const createTicketId = async (): Promise<string> => {
   try {
     const result = await db.query(`SELECT COUNT(*) as count FROM tickets`);
