@@ -40,6 +40,14 @@ export const updateTicket = async (req: Request, res: Response) => {
 
   const ticketPayload: Ticket = req.body;
 
+  const ticketExists = await ticketService.getTicketById(
+    ticketPayload.ticketId,
+  );
+
+  if (!ticketExists) {
+    throw new BadRequestError("Specified ticket does not exist");
+  }
+
   const updatedTicket = await ticketService.updateTicket(ticketPayload);
 
   return res.json(updatedTicket);

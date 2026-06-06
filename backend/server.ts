@@ -9,13 +9,12 @@ import {
   updateTicket,
 } from "./controller/ticket";
 import { errorMiddleware } from "./middleware/errorMiddleware";
+import { ticketRouter } from "./routes/ticket";
 const app = express();
 
 app.use(express.json());
 
-app.get("/", async (req, res) => {
-  let ticket = await getTicketById(req, res);
-});
+app.use("/ticket", ticketRouter);
 
 app.use(errorMiddleware);
 
