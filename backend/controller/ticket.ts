@@ -3,6 +3,28 @@ import * as ticketService from "../services/ticket";
 import { TicketSeverity, TicketState, type Ticket } from "../types/ticket";
 import { BadRequestError } from "../errors";
 
+export const getTickets = async (req: Request, res: Response) => {
+  const { limit, cursor, direction } = req.query;
+
+  const parsedLimit = limit ? parseInt(limit as string, 10) : 10;
+
+  if (isNaN(parsedLimit) || parsedLimit <= 0) {
+    throw new BadRequestError("Limit must be a positive number.");
+  }
+
+  const parsedCursor = cursor ? (cursor as Ticket["ticketId"]) : undefined;
+
+  const parsedDirection = direction === "previous" ? "previous" : "next";
+
+  const result = await ticketService.getTickets(
+    parsedLimit,
+    parsedCursor,
+    parsedDirection,
+  );
+
+  return res.json(result);
+};
+
 export const getAllTickets = async (req: Request, res: Response) => {
   const tickets = await ticketService.getAllTickets();
 

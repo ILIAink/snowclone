@@ -1,6 +1,55 @@
 import type { Ticket } from "../types/ticket";
 import { db } from "../db/db";
 
+type PaginationDirection = "next" | "previous";
+export const buildPaginationQuery = (
+  limit: number,
+  cursor?: Ticket["ticketId"],
+  direction?: PaginationDirection,
+) => {
+  if (!cursor) {
+    return {
+      query: `SELECT * FROM tickets ORDER BY ticketId DESC LIMIT $1`,
+      params: [limit],
+    };
+  }
+
+  if (direction === "next") {
+    return {
+      query: `SELECT * FROM tickets WHERE ticketId < $1 ORDER BY ticketId DESC LIMIT $2`,
+      params: [cursor, limit],
+    };
+  }
+
+  return {
+    query: `SELECT * FROM (
+      SELECT * FROM tickets WHERE ticketId > $1 ORDER BY ticketId ASC LIMIT $2
+    ) as t ORDER BY ticketId DESC`,
+    params: [cursor, limit],
+  };
+};
+
+export const getTickets = async (
+  limit: number = 10,
+  cursor?: Ticket["ticketId"],
+  direction: PaginationDirection = "next",
+) => {
+  const { query, params } = buildPaginationQuery(limit, cursor, direction);
+
+  console.log(query, params);
+
+  const { rows: tickets } = await db.query(query, params);
+
+  const { ticketid: nextCursor } = tickets.at(-1) ?? null;
+  const { ticketid: prevCursor } = tickets.at(0) ?? null;
+
+  return {
+    tickets,
+    nextCursor,
+    prevCursor,
+  };
+};
+
 export const getAllTickets = async () => {
   try {
     const result = await db.query("SELECT * FROM tickets");
