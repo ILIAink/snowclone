@@ -3,6 +3,7 @@
   "private": true,
   "devDependencies": {
     "@types/bun": "latest",
+    "@types/cors": "^2.8.19",
     "@types/dotenv": "^8.2.3",
     "@types/express": "^5.0.6",
     "@types/node": "^25.9.1",
@@ -17,6 +18,7 @@
     "typescript": "^6.0.3"
   },
   "dependencies": {
+    "cors": "^2.8.6",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
     "http-status-codes": "^2.3.0",
