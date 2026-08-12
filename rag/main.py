@@ -1,14 +1,10 @@
 import os
 
 import chromadb
-import matplotlib.pyplot as plt
-import numpy as np
 from chromadb.utils import embedding_functions
 from dotenv import load_dotenv
 from google import genai
 from google.genai import types
-from sklearn.decomposition import PCA
-from sklearn.manifold import TSNE
 
 # Automatically loads in .env values
 load_dotenv()
@@ -133,120 +129,6 @@ def generate_response(question, relevant_chunks):
     return response.text
 
 
-def plot_embeddings(question):
-    print("==== Getting document embeddings ====")
-
-    # Get all stored embeddings from Chroma
-    data = collection.get(include=["embeddings", "documents"])
-
-    document_embeddings = data["embeddings"]
-    documents = data["documents"]
-    ids = data["ids"]
-
-    if document_embeddings is None or len(document_embeddings) == 0:
-        print("No embeddings found.")
-        return
-
-    # 1. Identify which IDs the vector database actually retrieves for this question
-    print("==== Identifying retrieved chunks ====")
-    query_results = collection.query(query_texts=[question], n_results=2)
-
-    retrieved_ids = query_results["ids"][0]
-
-    # Generate embedding for the question
-    print("==== Generating question embedding ====")
-    question_embedding = generate_embeddings(question)
-
-    # Combine document vectors + question vector
-    all_embeddings = list(document_embeddings) + [question_embedding]
-    all_embeddings_array = np.array(all_embeddings)
-
-    # 2. Update t-SNE to 3 components (3D)
-    n_samples = len(all_embeddings_array)
-    perplexity_val = min(30, n_samples - 1) if n_samples > 1 else 1
-
-    # Notice n_components=3 here!
-    tsne = TSNE(
-        n_components=3,
-        perplexity=perplexity_val,
-        random_state=42,
-        init="random",
-    )
-    reduced_embeddings = tsne.fit_transform(all_embeddings_array)
-
-    document_points = reduced_embeddings[:-1]
-    question_point = reduced_embeddings[-1]
-
-    # Plot setup for 3D
-    fig = plt.figure(figsize=(14, 10))
-    ax = fig.add_subplot(111, projection="3d")
-
-    # Plot all document vectors (X, Y, Z)
-    ax.scatter(
-        document_points[:, 0],
-        document_points[:, 1],
-        document_points[:, 2],
-        alpha=0.6,
-        label="Document chunks",
-        s=50,
-    )
-
-    # Plot question vector
-    ax.scatter(
-        question_point[0],
-        question_point[1],
-        question_point[2],
-        s=300,
-        marker="*",
-        color="darkorange",
-        label="Question",
-    )
-
-    # Annotate ALL document IDs and circle the RETRIEVED ones
-    for i, doc_id in enumerate(ids):
-        # Add the ID as text next to the point
-        ax.text(
-            document_points[i, 0] + 0.5,
-            document_points[i, 1] + 0.5,
-            document_points[i, 2] + 0.5,
-            doc_id,
-            fontsize=8,
-            alpha=0.8,
-        )
-
-        # If this ID is in our retrieved results, draw a red circle around it
-        if doc_id in retrieved_ids:
-            ax.scatter(
-                document_points[i, 0],
-                document_points[i, 1],
-                document_points[i, 2],
-                s=600,
-                facecolors="none",
-                edgecolors="red",
-                linewidths=2,
-                label="Retrieved Chunk" if doc_id == retrieved_ids[0] else "",
-            )
-
-    # Label the question
-    ax.text(
-        question_point[0] + 1,
-        question_point[1] + 1,
-        question_point[2] + 1,
-        question,
-        fontsize=10,
-        fontweight="bold",
-    )
-
-    ax.set_title("Document Embeddings + Query (3D t-SNE Projection)")
-    ax.set_xlabel("t-SNE Dimension 1")
-    ax.set_ylabel("t-SNE Dimension 2")
-    ax.set_zlabel("t-SNE Dimension 3")
-    ax.legend()
-
-    # Matplotlib's show() will open an interactive window where you can click and drag to rotate!
-    plt.show()
-
-
 question = "Methods of AD password verification?"
 relevant_chunks = query_documents(question)
 
@@ -256,25 +138,3 @@ print("----------------")
 answer = generate_response(question, relevant_chunks)
 
 print(answer)
-
-plot_embeddings(question)
-
-# Create the chat session with the model and system instruction configuration
-# chat = client.chats.create(
-#     model="gemini-3.6-flash",
-#     config=types.GenerateContentConfig(
-#         system_instruction="You are a helpful IT support assistant expert in troubleshooting corporate systems."
-#     ),
-# )
-
-# response = chat.send_message("How do I clear the print spooler on Windows?")
-# print(response.text)
-
-# if __name__ == "__main__":
-#     docs = load_documents_from_directory("./Documents")
-#     doc = docs[0]["text"]
-
-#     chunks = split_text(doc)
-#     print(chunks)
-
-#     Load documents from dir
